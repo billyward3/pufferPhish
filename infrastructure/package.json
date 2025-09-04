@@ -1,0 +1,24 @@
+{
+  "name": "@pufferphish/infrastructure",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "cdk": "cdk",
+    "deploy": "cdk deploy",
+    "synth": "cdk synth",
+    "diff": "cdk diff",
+    "destroy": "cdk destroy",
+    "bootstrap": "cdk bootstrap"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "aws-cdk": "^2.214.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.214.0",
+    "constructs": "^10.3.0"
+  }
+}

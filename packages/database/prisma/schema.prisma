@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  cognitoId     String   @unique
+  email         String   @unique
+  tier          String   @default("free")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  analyses      Analysis[]
+  feedback      Feedback[]
+  settings      UserSettings?
+  
+  @@index([email])
+  @@index([cognitoId])
+}
+
+model UserSettings {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  autoBlock         Boolean  @default(true)
+  notifications     Boolean  @default(true)
+  whitelistedDomains String[]
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+model Analysis {
+  id            String   @id @default(uuid())
+  userId        String
+  url           String   @db.Text
+  domain        String
+  riskScore     Float
+  threats       Json
+  blocked       Boolean
+  source        String
+  metadata      Json?
+  timestamp     DateTime @default(now())
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedback      Feedback?
+  
+  @@index([userId, timestamp(sort: Desc)])
+  @@index([domain])
+  @@index([timestamp])
+}
+
+model Feedback {
+  id            String   @id @default(uuid())
+  analysisId    String   @unique
+  userId        String
+  correct       Boolean
+  actualThreat  String?
+  comment       String?  @db.Text
+  timestamp     DateTime @default(now())
+  
+  analysis      Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model UrlCache {
+  url           String   @id
+  riskScore     Float
+  threats       Json
+  source        String
+  rawResponse   Json
+  checkedAt     DateTime @default(now())
+  expiresAt     DateTime
+  
+  @@index([expiresAt])
+  @@index([checkedAt])
+}
+
+model ThreatIntel {
+  id            String   @id @default(uuid())
+  domain        String   @unique
+  threatType    String
+  confidence    Float
+  source        String
+  firstSeen     DateTime
+  lastSeen      DateTime @default(now())
+  active        Boolean  @default(true)
+  
+  @@index([domain])
+  @@index([active, threatType])
+  @@index([lastSeen])
+}
+
+model ModelVersion {
+  id            String   @id @default(uuid())
+  version       String   @unique
+  s3Path        String
+  accuracy      Float?
+  deployedAt    DateTime @default(now())
+  active        Boolean  @default(false)
+  metadata      Json
+  
+  @@index([active])
+  @@index([deployedAt])
+}
+
+model Metrics {
+  id            String   @id @default(uuid())
+  date          DateTime @db.Date
+  totalScans    Int      @default(0)
+  threatsBlocked Int     @default(0)
+  falsePositives Int     @default(0)
+  falseNegatives Int     @default(0)
+  avgLatency    Float?
+  uniqueUsers   Int      @default(0)
+  
+  @@unique([date])
+  @@index([date])
+}
