@@ -2,6 +2,10 @@
   "name": "pufferphish",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "packages/*",
+    "infrastructure"
+  ],
   "scripts": {
     "dev": "turbo run dev",
     "dev:extension": "turbo run dev --filter=@pufferphish/extension",
