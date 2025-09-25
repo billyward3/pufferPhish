@@ -1,8 +1,9 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
+  # Temporarily disabled automatic deployment
+  # push:
+  #   branches: [main]
   workflow_dispatch:
     inputs:
       environment:
