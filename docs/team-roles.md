@@ -135,17 +135,6 @@
 
 ## Communication Protocol
 
-### Daily Standups
-- 10am via Discord/Slack
-- Format: Yesterday/Today/Blockers
-- Max 2 minutes per person
-
-### Weekly Integration
-- Fridays 3pm
-- Test end-to-end flows
-- Resolve integration issues
-- Plan next week
-
 ### Code Review Process
 1. Create feature branch from `develop`
 2. Open PR with clear description

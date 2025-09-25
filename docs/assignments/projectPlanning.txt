@@ -1,0 +1,266 @@
+EECS 497: Major Design Projects
+Project Planning Document
+
+PufferPhish: ML-Powered Phishing Detection System
+James Choi, Gabe Huttemann, William Ward
+January 2025
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PROJECT BRIEFING
+
+1. Goals and Impact of a Successful Project
+
+High-Level Goals:
+PufferPhish aims to deliver a proactive, ML-powered phishing detection system that protects users before they become victims, unlike existing reactive solutions that depend on post-incident reporting. Our 16-week deliverable includes a fully functional Chrome extension, cloud-based detection API, and user dashboard.
+
+Success Metrics:
+• Detection accuracy: >95% true positive rate with <2% false positives
+• Response time: <200ms for real-time URL analysis
+• User engagement: 80% of users interact with educational features
+• Performance impact: <50MB memory footprint, <5% CPU usage
+
+Strategic Benefits:
+Our solution provides superior protection through proactive ML detection (vs. reactive blocklists), educational feedback (vs. silent blocking), and privacy-preserving architecture (vs. cloud-only analysis). This positions PufferPhish as a next-generation security tool that both protects and educates.
+
+User Impact:
+A successful project delivers immediate phishing protection to three underserved populations: senior citizens (simplified warnings in plain language), non-English speakers (visual indicators transcending language barriers), and small businesses (enterprise protection without IT expertise). Each user gains both immediate protection and long-term security awareness through our educational approach.
+
+Long-term Goals:
+Beyond the semester deliverable, PufferPhish can expand to email clients, mobile apps, and enterprise deployment, with potential to significantly reduce phishing impact across user populations.
+
+Product Impact and Importance:
+
+Why This Project Matters:
+• Phishing remains one of the most prevalent and damaging cyber threats facing internet users
+• Existing reactive solutions depend on user reports, leaving a window of vulnerability for new attacks
+• Vulnerable populations (elderly, non-technical users) are disproportionately targeted and lack adequate protection
+• Small businesses often cannot afford enterprise security solutions, leaving them exposed
+• Educational opportunity: Most tools block threats without explaining why, missing chances to improve user awareness
+
+Short-Term Goals (Semester Delivery):
+• Deploy working prototype for beta testing with classmates and volunteers
+• Achieve target detection metrics based on testing with known phishing samples
+• Build educational framework that explains detection decisions to users
+• Establish proof-of-concept for privacy-preserving ML detection
+• Create foundation for potential open-source community contribution
+
+Long-Term Vision (Post-Graduation):
+• Release on Chrome Web Store for public adoption
+• Partner with community organizations for digital literacy programs
+• Develop affordable tier for small businesses
+• Explore expansion to other platforms (email clients, mobile apps)
+• Contribute to open-source security community
+• Potential commercial development or acquisition opportunities
+
+Societal Impact:
+Our "not-only-you" focus addresses digital inequality, recognizing that vulnerable populations (seniors, non-English speakers, small businesses) often lack adequate phishing protection. By democratizing enterprise-grade protection with educational components, PufferPhish aims to reduce the security gap between technical and non-technical users.
+
+2. Background Information
+
+Similar Solutions & Techniques to Leverage:
+• Google Safe Browsing: Industry-standard API we'll integrate for baseline protection
+• PhishTank: Community database providing 500K+ labeled URLs for model training
+• Microsoft SmartScreen: UI patterns for non-intrusive warning displays
+• Netcraft Extension: Educational approach we'll expand with ML-powered explanations
+• VirusTotal API: Multi-engine validation we'll use for reducing false positives
+
+Technical Challenges Anticipated:
+• Real-time ML inference: Achieving <200ms response requires optimized models and edge computing
+• False positive minimization: Balancing security with usability to avoid warning fatigue
+• Visual similarity detection: Implementing CNN-based brand impersonation detection efficiently
+• Cross-browser compatibility: Manifest V3 migration and future-proofing
+• Privacy preservation: Implementing on-device processing while maintaining cloud learning
+
+Field Experts and Team Expertise:
+• Academic Leaders: Dr. Ruoyu Wang (ASU) pioneered visual phishing detection; Dr. Adam Doupé (UCSB) leads URL-based ML detection research
+• Industry Experts: Google Safe Browsing team (Elie Bursztein), Microsoft Security Research (Aanchal Malhotra)
+• Team Expertise: Huttemann has ML research experience from REU program; Choi interned at AWS; Ward contributed to open-source browser extensions
+• Advisory Resources: Prof. Honeyman (UMICH Security) available for consultation; AWS student support for architecture review
+
+Specific Challenge Areas:
+• Performance Bottleneck: Chrome's 6-second service worker limit requires optimizing model loading (challenge: 50MB model in <500ms)
+• False Positive Balance: Enterprise tools achieve <1% FP rate; our target <2% requires extensive threshold tuning
+• Visual Processing: Real-time screenshot analysis without UI blocking requires offloading to web workers
+• API Rate Limits: Free tiers limit to 1000 requests/day; implementing intelligent caching and batching critical
+
+Key Technical Hurdles:
+The primary challenge is implementing ML inference that's both accurate and fast enough for real-time protection. We'll address this through model quantization, edge caching, and selective cloud processing for high-risk scenarios only.
+
+3. Team Members, Skills, and Organization
+
+Team Composition:
+• James Choi (CS Major): Full-Stack Development, React expertise, AWS infrastructure
+• Gabe Huttemann (CS Major): Machine Learning, Python, Security research background  
+• William Ward (CS Major): Browser extension development, JavaScript/TypeScript, UI/UX
+
+Organizational Structure:
+We've adopted a parallel development model with clear ownership boundaries:
+• Frontend Lead (Ward): Chrome extension and user-facing interfaces
+• Backend Lead (Choi): API development, database, and cloud infrastructure
+• ML Lead (Huttemann): Model selection, optimization, and inference pipeline
+
+This structure enables concurrent development while minimizing blocking dependencies. Each lead owns their vertical slice from design through deployment.
+
+Skills Gap Analysis:
+• Required learning: Chrome Manifest V3 APIs, AWS Lambda optimization, Hugging Face deployment
+• Mitigation: Allocated 2-week learning phase, leveraging documentation and tutorials
+• External resources: AWS credits through GitHub Student Pack, Hugging Face community support
+
+4. Project Management Strategy
+
+Tools & Techniques:
+• GitHub Projects: Kanban board for task tracking with automated PR integration
+• Discord: Daily async standups and real-time problem-solving
+• GitHub Actions: CI/CD pipeline with automatic testing and deployment
+• AWS CloudWatch: Performance monitoring and cost tracking
+
+Justification:
+GitHub-centric workflow chosen for seamless code-task integration, version control, and industry-standard practices. Discord enables quick communication across different schedules.
+
+Management Cadence:
+• Daily: Async Discord standups (2min per person)
+• Weekly: Friday integration testing and milestone review
+• Bi-weekly: Scope adjustment based on velocity and blockers
+• Monthly: Executive-style progress report
+
+Team Experience:
+All members have GitHub collaboration experience. Choi has prior project management experience from internship. Learning curve primarily around AWS services and Chrome extension APIs, addressed through dedicated learning sprint.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+INITIAL PROJECT MANAGEMENT PLAN & MILESTONES
+
+Project Timeline: January 13 - April 28, 2025 (16 weeks)
+
+PROJECT PHASES
+
+Phase 1: Start-Up and Foundation (Weeks 1-2: Jan 13 - Jan 26)
+• Team organization and role assignment
+• Development environment setup (AWS, GitHub, local tools)
+• Technology stack research and tool selection
+• Initial architecture design and API specification
+• Deliverable: Development environments ready, architecture documented
+
+Phase 2: User Requirements and Design (Weeks 3-4: Jan 27 - Feb 9)
+• User research with target populations (seniors, non-English speakers, SMBs)
+• UI/UX mockups for extension and dashboard
+• Security requirements analysis
+• ML model evaluation and selection
+• Deliverable: Complete requirements document and design mockups
+
+Phase 3: Core Development (Weeks 5-10: Feb 10 - Mar 23)
+• Chrome extension: manifest, service worker, content scripts
+• Backend API: Lambda functions, database schema, external integrations
+• ML pipeline: Model deployment, inference optimization
+• Dashboard: React components, authentication flow
+• Deliverable: Alpha version with basic functionality
+
+Phase 4: Integration and Enhancement (Weeks 11-13: Mar 24 - Apr 13)
+• Component integration and API connection
+• Advanced features: visual similarity, educational overlays
+• Performance optimization and caching
+• Security hardening and privacy validation
+• Deliverable: Beta version with all features integrated
+
+Phase 5: Testing and Evaluation (Weeks 14-15: Apr 14 - Apr 27)
+• User acceptance testing with target populations
+• Performance benchmarking against success metrics
+• Security audit and penetration testing
+• Bug fixes and refinements
+• Deliverable: Production-ready application
+
+Phase 6: Final Delivery (Week 16: Apr 28)
+• Documentation completion
+• Final presentation preparation
+• Code cleanup and repository organization
+• Handoff materials preparation
+• Deliverable: Complete project package
+
+STRATEGIC MILESTONES
+
+1. User Requirements Complete - February 9, 2025
+   All user stories documented, UI mockups approved, technical requirements finalized
+
+2. Preliminary Solution (Alpha) - March 9, 2025
+   Basic extension detecting URLs, API processing requests, simple dashboard displaying results
+
+3. Minimum Requirement Deliverable - March 30, 2025
+   Full detection pipeline functional, all APIs integrated, educational features implemented
+
+4. Testing/Evaluation Start - April 14, 2025
+   Begin formal testing with target user groups, performance benchmarking, security audit
+
+5. Project Freeze Date - April 25, 2025
+   Final code commit, no further development changes, focus on documentation/presentation
+
+GANTT CHART VISUALIZATION
+[Note: In actual submission, this would be a visual Gantt chart showing parallel tracks]
+
+Track 1 (Extension):  |==Foundation==|==Core Dev===============|==Integration====|==Test==|
+Track 2 (Backend):    |==Foundation==|==API Development========|==Integration====|==Test==|
+Track 3 (ML):         |==Research====|==Model Deploy===========|==Optimize=======|==Test==|
+Track 4 (Dashboard):  |==Setup=======|==Design===|==React Dev======|==Polish=====|==Test==|
+
+Critical Path: ML Model Deployment → API Integration → Extension Testing → Final Delivery
+
+
+
