@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PufferPhish Extension - Lofi Prototype</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <style>
+        /* Extension Popup Specific Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--color-white);
+        }
+
+        .extension-container {
+            width: 380px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            background: var(--color-white);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .extension-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-md) var(--space-lg);
+            border-bottom: 2px solid var(--color-gray-200);
+            background: var(--color-white);
+        }
+
+        .extension-title {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-gray-900);
+        }
+
+        .extension-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .icon-button {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            color: var(--color-gray-600);
+        }
+
+        .icon-button:hover {
+            background: var(--color-gray-100);
+        }
+
+        .extension-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-lg);
+        }
+
+        .extension-footer {
+            padding: var(--space-lg);
+            border-top: 2px solid var(--color-gray-200);
+        }
+
+        .status-header {
+            text-align: center;
+            padding: var(--space-xl) var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+
+        .status-icon {
+            font-size: 64px;
+            margin-bottom: var(--space-md);
+        }
+
+        .status-title {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+        }
+
+        .status-description {
+            font-size: var(--font-size-base);
+            color: var(--color-gray-600);
+        }
+
+        .action-section {
+            margin-top: var(--space-lg);
+        }
+
+        .action-section h4 {
+            margin-bottom: var(--space-md);
+            font-size: var(--font-size-base);
+            color: var(--color-gray-700);
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        /* State Switcher (for demo) */
+        .demo-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--color-gray-900);
+            color: var(--color-white);
+            padding: var(--space-md);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-xl);
+            z-index: 1000;
+        }
+
+        .demo-controls h4 {
+            color: var(--color-white);
+            margin-bottom: var(--space-sm);
+            font-size: var(--font-size-sm);
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .demo-buttons button {
+            padding: var(--space-xs) var(--space-sm);
+            font-size: var(--font-size-xs);
+            min-height: auto;
+        }
+
+        /* View Wrapper */
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .comparison-box {
+            background: var(--color-gray-50);
+            border: 2px solid var(--color-gray-300);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            margin-top: var(--space-lg);
+        }
+
+        .comparison-box h5 {
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--space-sm);
+            color: var(--color-gray-700);
+        }
+
+        .comparison-sites {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+            font-size: var(--font-size-sm);
+        }
+
+        .comparison-site {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .site-badge {
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+        }
+
+        .site-badge.real {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .site-badge.fake {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        @media (max-width: 480px) {
+            .extension-container {
+                width: 100vw;
+                height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#main" class="skip-link">Skip to main content</a>
+
+    <div class="extension-container">
+        <!-- Header -->
+        <header class="extension-header">
+            <span class="extension-title">PufferPhish</span>
+            <div class="extension-actions">
+                <button class="icon-button" aria-label="Settings">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main id="main" class="extension-body">
+            <!-- SAFE STATE -->
+            <div id="safe-view" class="view active">
+                <div class="status-header">
+                    <div class="status-icon">🛡️</div>
+                    <h2 class="status-title">
+                        <span class="status-dot safe"></span>
+                        You're Protected
+                    </h2>
+                    <p class="status-description">This page appears to be safe</p>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-header">Today's Protection</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-number">12</span>
+                            <span class="stat-label">Scams Blocked</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number">145</span>
+                            <span class="stat-label">Safe Sites</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number">3</span>
+                            <span class="stat-label">Warnings Given</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WARNING STATE -->
+            <div id="warning-view" class="view">
+                <div class="status-header">
+                    <div class="status-icon">⚠️</div>
+                    <h2 class="status-title">
+                        <span class="status-dot warning"></span>
+                        CAUTION
+                    </h2>
+                    <p class="status-description">This page has suspicious signs</p>
+                </div>
+
+                <div class="risk-meter">
+                    <div class="risk-meter-header">
+                        <span class="risk-score">Risk Score: 58%</span>
+                        <span class="risk-level medium">Medium Risk</span>
+                    </div>
+                    <div class="risk-bar">
+                        <div class="risk-bar-fill medium" style="width: 58%"></div>
+                    </div>
+                    <div class="risk-labels">
+                        <span>0%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-header">Why was this flagged?</h3>
+                    <div class="threat-details">
+                        <div class="threat-item">
+                            <div class="threat-checkbox checked"></div>
+                            <div class="threat-content">
+                                <strong>URL pattern looks unusual</strong>
+                                <p>The web address doesn't match typical patterns for legitimate sites</p>
+                            </div>
+                        </div>
+                        <div class="threat-item">
+                            <div class="threat-checkbox checked"></div>
+                            <div class="threat-content">
+                                <strong>Requests personal information</strong>
+                                <p>This page asks for passwords or payment details</p>
+                            </div>
+                        </div>
+                        <div class="threat-item">
+                            <div class="threat-checkbox"></div>
+                            <div class="threat-content">
+                                <strong>Poor website certificate</strong>
+                                <p>No security issues detected with the site's certificate</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-section">
+                    <h4>What should I do?</h4>
+                    <div class="action-buttons">
+                        <button class="btn btn-safe btn-full">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="btn-icon">
+                                <path d="M9 2L2 8v10h6v-6h4v6h6V8L9 2z"/>
+                            </svg>
+                            Go Back to Safety
+                        </button>
+                        <button class="btn btn-secondary btn-full">
+                            I Trust This Site
+                        </button>
+                    </div>
+                    <div style="text-align: center; margin-top: var(--space-md);">
+                        <button class="link-button">Report if Wrong</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DANGER STATE -->
+            <div id="danger-view" class="view">
+                <div class="status-header">
+                    <div class="status-icon">🛑</div>
+                    <h2 class="status-title">
+                        <span class="status-dot danger"></span>
+                        DANGER
+                    </h2>
+                    <p class="status-description">This page is likely a scam!</p>
+                </div>
+
+                <div class="risk-meter">
+                    <div class="risk-meter-header">
+                        <span class="risk-score">Risk Score: 92%</span>
+                        <span class="risk-level high">High Risk</span>
+                    </div>
+                    <div class="risk-bar">
+                        <div class="risk-bar-fill high" style="width: 92%"></div>
+                    </div>
+                    <div class="risk-labels">
+                        <span>0%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+
+                <div class="warning-banner danger">
+                    <span class="warning-icon">⚠️</span>
+                    <div class="warning-content">
+                        <h3>This site is trying to:</h3>
+                        <ul style="margin: var(--space-sm) 0 0 var(--space-lg); padding: 0;">
+                            <li>Steal your passwords</li>
+                            <li>Get your credit card info</li>
+                            <li>Trick you into sending money</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="comparison-box">
+                    <h5>🔍 Looks like a fake version of:</h5>
+                    <div class="comparison-sites">
+                        <div class="comparison-site">
+                            <span class="site-badge real">Real</span>
+                            <code>paypal.com</code>
+                        </div>
+                        <div class="comparison-site">
+                            <span class="site-badge fake">Fake</span>
+                            <code>paypa1-secure.com</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-section">
+                    <div class="action-buttons">
+                        <button class="btn btn-safe btn-full btn-large">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="btn-icon">
+                                <path d="M10 3l-7 7h4v7h6v-7h4z"/>
+                            </svg>
+                            Take Me to Safety
+                        </button>
+                        <button class="btn btn-secondary btn-full">
+                            I Understand the Risk →
+                        </button>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: var(--space-md);">
+                        <button class="link-button">Learn More</button>
+                        <button class="link-button">Report if Wrong</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="extension-footer">
+            <button class="btn btn-secondary btn-full">
+                Open Full Dashboard
+            </button>
+        </footer>
+    </div>
+
+    <!-- Demo Controls -->
+    <div class="demo-controls">
+        <h4>Switch State (Demo)</h4>
+        <div class="demo-buttons">
+            <button class="btn btn-primary" onclick="showView('safe')">Safe</button>
+            <button class="btn btn-primary" onclick="showView('warning')">Warning</button>
+            <button class="btn btn-primary" onclick="showView('danger')">Danger</button>
+        </div>
+        <div style="margin-top: var(--space-sm); text-align: center;">
+            <a href="index.html" style="color: var(--color-white); font-size: var(--font-size-xs);">← Back Home</a>
+        </div>
+    </div>
+
+    <script>
+        function showView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+            });
+
+            // Show selected view
+            document.getElementById(viewName + '-view').classList.add('active');
+
+            // Announce to screen readers
+            const stateText = {
+                'safe': 'Safe state: You are protected',
+                'warning': 'Warning state: This page has suspicious signs',
+                'danger': 'Danger state: This page is likely a scam'
+            };
+
+            const announcement = document.createElement('div');
+            announcement.setAttribute('role', 'status');
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.className = 'sr-only';
+            announcement.textContent = stateText[viewName];
+            document.body.appendChild(announcement);
+
+            setTimeout(() => announcement.remove(), 1000);
+        }
+
+        // Keyboard navigation for demo controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '1') showView('safe');
+            if (e.key === '2') showView('warning');
+            if (e.key === '3') showView('danger');
+        });
+    </script>
+</body>
+</html>
