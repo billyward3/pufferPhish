@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In-Page Warnings - Lofi Prototype</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <style>
+        /* Page Container */
+        .demo-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .demo-header {
+            background: var(--color-white);
+            border-bottom: 2px solid var(--color-gray-200);
+            padding: var(--space-lg) var(--space-xl);
+            position: relative;
+            z-index: 10;
+        }
+
+        .demo-header h1 {
+            font-size: var(--font-size-2xl);
+            margin-bottom: var(--space-sm);
+        }
+
+        .demo-header p {
+            color: var(--color-gray-600);
+            margin: 0;
+        }
+
+        .demo-nav {
+            background: var(--color-gray-100);
+            padding: var(--space-md) var(--space-xl);
+            display: flex;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 10;
+        }
+
+        .demo-content {
+            flex: 1;
+            position: relative;
+        }
+
+        /* Mock Website Content */
+        .mock-website {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: var(--space-xl);
+        }
+
+        .mock-header {
+            background: var(--color-white);
+            padding: var(--space-lg);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-lg);
+            border: 2px solid var(--color-gray-200);
+        }
+
+        .mock-content {
+            background: var(--color-white);
+            padding: var(--space-xl);
+            border-radius: var(--radius-md);
+            border: 2px solid var(--color-gray-200);
+            line-height: 1.8;
+        }
+
+        /* Warning Overlays */
+        .warning-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: var(--z-warning-banner);
+            display: none;
+        }
+
+        .warning-overlay.active {
+            display: block;
+        }
+
+        /* Collapsed Banner */
+        .collapsed-banner {
+            background: #FEF3C7;
+            border-bottom: 3px solid #F59E0B;
+            padding: var(--space-lg) var(--space-xl);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-md);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .collapsed-banner.danger {
+            background: #FEE2E2;
+            border-bottom-color: #EF4444;
+        }
+
+        .collapsed-content {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            flex: 1;
+        }
+
+        .collapsed-content .warning-icon {
+            font-size: var(--font-size-xl);
+        }
+
+        .collapsed-content h3 {
+            font-size: var(--font-size-lg);
+            margin: 0;
+        }
+
+        .collapsed-actions {
+            display: flex;
+            gap: var(--space-md);
+            align-items: center;
+        }
+
+        /* Expanded Panel */
+        .expanded-panel {
+            background: var(--color-white);
+            border-bottom: 3px solid #F59E0B;
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .expanded-panel.danger {
+            border-bottom-color: #EF4444;
+        }
+
+        .expanded-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-xl);
+        }
+
+        .expanded-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .expanded-title .warning-icon {
+            font-size: var(--font-size-3xl);
+        }
+
+        .expanded-title h2 {
+            font-size: var(--font-size-2xl);
+            margin: 0;
+        }
+
+        .expanded-body {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .expanded-section {
+            margin-bottom: var(--space-xl);
+        }
+
+        .expanded-section h3 {
+            margin-bottom: var(--space-md);
+        }
+
+        .expanded-actions {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: center;
+            margin-top: var(--space-xl);
+        }
+
+        /* Full Page Interstitial */
+        .interstitial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--color-white);
+            z-index: var(--z-interstitial);
+            display: none;
+            overflow-y: auto;
+        }
+
+        .interstitial-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-xl);
+        }
+
+        .interstitial-content {
+            max-width: 700px;
+            text-align: center;
+        }
+
+        .interstitial-icon {
+            font-size: 96px;
+            margin-bottom: var(--space-xl);
+        }
+
+        .interstitial-title {
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-lg);
+            color: #991B1B;
+        }
+
+        .interstitial-subtitle {
+            font-size: var(--font-size-xl);
+            color: var(--color-gray-700);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .interstitial-divider {
+            height: 2px;
+            background: var(--color-gray-200);
+            margin: var(--space-2xl) 0;
+        }
+
+        .interstitial-warnings {
+            text-align: left;
+            background: var(--color-gray-50);
+            padding: var(--space-xl);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-xl);
+        }
+
+        .interstitial-warnings h3 {
+            margin-bottom: var(--space-md);
+            text-align: center;
+        }
+
+        .interstitial-warnings ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .interstitial-warnings li {
+            padding: var(--space-md) 0;
+            font-size: var(--font-size-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .interstitial-warnings li::before {
+            content: '•';
+            color: #EF4444;
+            font-size: var(--font-size-2xl);
+            font-weight: bold;
+        }
+
+        .interstitial-reason {
+            text-align: left;
+            background: var(--color-white);
+            padding: var(--space-xl);
+            border: 2px solid var(--color-gray-300);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .interstitial-reason h3 {
+            margin-bottom: var(--space-md);
+            text-align: center;
+        }
+
+        .interstitial-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+            align-items: center;
+        }
+
+        .interstitial-primary {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .interstitial-link {
+            font-size: var(--font-size-base);
+            text-decoration: underline;
+            color: var(--color-gray-600);
+            margin-top: var(--space-lg);
+        }
+
+        /* Demo Controls */
+        .demo-controls-fixed {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--color-gray-900);
+            color: var(--color-white);
+            padding: var(--space-md);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-xl);
+            z-index: 999999;
+        }
+
+        .demo-controls-fixed h4 {
+            color: var(--color-white);
+            margin-bottom: var(--space-sm);
+            font-size: var(--font-size-sm);
+        }
+
+        @media (max-width: 768px) {
+            .collapsed-banner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .expanded-actions,
+            .collapsed-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .expanded-actions button,
+            .collapsed-actions button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-page">
+        <!-- Header -->
+        <header class="demo-header">
+            <h1>In-Page Warning Demonstrations</h1>
+            <p>Experience how warnings appear when you visit suspicious websites</p>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="demo-nav">
+            <button class="btn btn-primary" onclick="showWarning('collapsed-medium')">Show Medium Risk Banner</button>
+            <button class="btn btn-primary" onclick="showWarning('collapsed-high')">Show High Risk Banner</button>
+            <button class="btn btn-primary" onclick="showWarning('expanded')">Show Expanded Warning</button>
+            <button class="btn btn-danger" onclick="showWarning('interstitial')">Show Full Block</button>
+            <button class="btn btn-secondary" onclick="hideAllWarnings()">Reset View</button>
+        </nav>
+
+        <!-- Mock Website Content -->
+        <div class="demo-content">
+            <div class="mock-website">
+                <div class="mock-header">
+                    <h2>Example Website</h2>
+                    <p>This represents a normal website you might visit. Click the buttons above to see how different warning levels would appear on this page.</p>
+                </div>
+
+                <div class="mock-content">
+                    <h3>Sample Content</h3>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+
+                    <h3>More Sample Content</h3>
+                    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+
+                    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collapsed Banner (Medium Risk) -->
+        <div id="collapsed-medium" class="warning-overlay">
+            <div class="collapsed-banner">
+                <div class="collapsed-content">
+                    <span class="warning-icon">⚠️</span>
+                    <h3>WARNING: This site may be dangerous</h3>
+                </div>
+                <div class="collapsed-actions">
+                    <button class="btn btn-secondary" onclick="showWarning('expanded')">Show Details ▼</button>
+                    <button class="icon-button" onclick="hideAllWarnings()" aria-label="Close warning">×</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collapsed Banner (High Risk) -->
+        <div id="collapsed-high" class="warning-overlay">
+            <div class="collapsed-banner danger">
+                <div class="collapsed-content">
+                    <span class="warning-icon">🛑</span>
+                    <h3>DANGER: This site is likely a scam!</h3>
+                </div>
+                <div class="collapsed-actions">
+                    <button class="btn btn-danger" onclick="showWarning('interstitial')">See Why →</button>
+                    <button class="icon-button" onclick="hideAllWarnings()" aria-label="Close warning">×</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expanded Panel -->
+        <div id="expanded" class="warning-overlay">
+            <div class="expanded-panel">
+                <div class="expanded-header">
+                    <div class="expanded-title">
+                        <span class="warning-icon">⚠️</span>
+                        <h2>WARNING: This site may be dangerous</h2>
+                    </div>
+                    <button class="icon-button" onclick="hideAllWarnings()" aria-label="Close warning" style="font-size: 32px;">×</button>
+                </div>
+
+                <div class="expanded-body">
+                    <div class="expanded-section">
+                        <h3>Why we flagged this:</h3>
+                        <div class="threat-details">
+                            <div class="threat-item">
+                                <div class="threat-checkbox checked"></div>
+                                <div class="threat-content">
+                                    <strong>URL doesn't match the real company</strong>
+                                    <div class="threat-example">Example: "paypa1.com" instead of "paypal.com"</div>
+                                </div>
+                            </div>
+                            <div class="threat-item">
+                                <div class="threat-checkbox checked"></div>
+                                <div class="threat-content">
+                                    <strong>Page asks for sensitive information</strong>
+                                    <p>Requests: Password, Credit Card, SSN</p>
+                                </div>
+                            </div>
+                            <div class="threat-item">
+                                <div class="threat-checkbox"></div>
+                                <div class="threat-content">
+                                    <strong>Certificate issues</strong>
+                                    <p>No certificate problems detected</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expanded-section">
+                        <h3>What should you do?</h3>
+                        <ul style="margin-left: var(--space-lg); color: var(--color-gray-700); line-height: 1.8;">
+                            <li>Don't enter any personal information</li>
+                            <li>Don't download anything from this site</li>
+                            <li>Go back and use the official website</li>
+                        </ul>
+                    </div>
+
+                    <div class="expanded-actions">
+                        <button class="btn btn-safe btn-large">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="btn-icon">
+                                <path d="M9 2L2 8v10h6v-6h4v6h6V8L9 2z"/>
+                            </svg>
+                            Leave This Site
+                        </button>
+                        <button class="btn btn-secondary btn-large">
+                            I Trust This Site
+                        </button>
+                    </div>
+
+                    <div style="text-align: center; margin-top: var(--space-lg);">
+                        <button class="link-button">Report if Wrong</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Page Interstitial -->
+        <div id="interstitial" class="interstitial-overlay">
+            <div class="interstitial-content">
+                <div class="interstitial-icon">🛑</div>
+
+                <h1 class="interstitial-title">DANGER: LIKELY SCAM</h1>
+
+                <p class="interstitial-subtitle">
+                    This website is trying to steal your information
+                </p>
+
+                <div class="interstitial-divider"></div>
+
+                <div class="interstitial-warnings">
+                    <h3>DO NOT:</h3>
+                    <ul>
+                        <li>Enter your password</li>
+                        <li>Give credit card information</li>
+                        <li>Download any files</li>
+                        <li>Send money</li>
+                    </ul>
+                </div>
+
+                <div class="interstitial-reason">
+                    <h3>WHY THIS IS DANGEROUS:</h3>
+                    <p>This site pretends to be a trusted company but it's fake. Real companies don't ask for passwords through suspicious links.</p>
+                </div>
+
+                <div class="interstitial-divider"></div>
+
+                <div class="interstitial-actions">
+                    <button class="btn btn-safe btn-large btn-full interstitial-primary">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="width: 24px; height: 24px;">
+                            <path d="M12 4l-8 8h5v8h6v-8h5z"/>
+                        </svg>
+                        Go Back to Safety
+                    </button>
+
+                    <a href="#" class="link-button" style="font-size: var(--font-size-lg);">Learn More About Scams</a>
+
+                    <button class="link-button interstitial-link" onclick="hideAllWarnings()">
+                        I understand the risk and want to proceed →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Home -->
+        <div class="demo-controls-fixed">
+            <h4>Demo Navigation</h4>
+            <a href="index.html" style="color: var(--color-white); text-decoration: none; font-weight: var(--font-weight-semibold);">← Back Home</a>
+        </div>
+    </div>
+
+    <script>
+        function showWarning(warningId) {
+            // Hide all warnings first
+            hideAllWarnings();
+
+            // Show selected warning
+            const warning = document.getElementById(warningId);
+            if (warning) {
+                warning.classList.add('active');
+
+                // Announce to screen readers
+                const stateText = {
+                    'collapsed-medium': 'Warning banner shown: This site may be dangerous',
+                    'collapsed-high': 'Danger banner shown: This site is likely a scam',
+                    'expanded': 'Expanded warning panel shown with threat details',
+                    'interstitial': 'Full page warning: Dangerous site blocked'
+                };
+
+                announceToScreenReader(stateText[warningId]);
+
+                // Add dimming effect for expanded and interstitial
+                if (warningId === 'expanded' || warningId === 'interstitial') {
+                    document.querySelector('.demo-content').style.opacity = warningId === 'interstitial' ? '0' : '0.4';
+                }
+            }
+        }
+
+        function hideAllWarnings() {
+            document.querySelectorAll('.warning-overlay, .interstitial-overlay').forEach(warning => {
+                warning.classList.remove('active');
+            });
+            document.querySelector('.demo-content').style.opacity = '1';
+
+            announceToScreenReader('All warnings cleared. Viewing normal page.');
+        }
+
+        function announceToScreenReader(message) {
+            const announcement = document.createElement('div');
+            announcement.setAttribute('role', 'status');
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.className = 'sr-only';
+            announcement.textContent = message;
+            document.body.appendChild(announcement);
+            setTimeout(() => announcement.remove(), 1000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideAllWarnings();
+            }
+        });
+    </script>
+</body>
+</html>
