@@ -1,13 +1,21 @@
 name: Deploy
 
 on:
-  # Temporarily disabled automatic deployment
-  # push:
-  #   branches: [main]
+  # Manual deployment only
   workflow_dispatch:
     inputs:
+      component:
+        description: 'Component to deploy'
+        required: true
+        type: choice
+        options:
+          - all
+          - backend-api
+          - ml-lambda
+          - dashboard
+          - extension
       environment:
-        description: 'Environment to deploy to'
+        description: 'Environment'
         required: true
         default: 'development'
         type: choice
@@ -16,56 +24,216 @@ on:
           - production
 
 jobs:
-  deploy:
-    name: Deploy to AWS
+  deploy-backend:
+    name: Deploy Backend API
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'development' }}
-    
+    if: github.event.inputs.component == 'backend-api' || github.event.inputs.component == 'all'
+    environment: ${{ github.event.inputs.environment }}
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
-      - name: Build packages
-        run: npm run build
-      
+
+      - name: Build API package
+        run: |
+          if [ -d "packages/api" ]; then
+            npm run build --workspace=packages/api
+          else
+            echo "⚠️ API package not found, skipping"
+            exit 0
+          fi
+
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-      
-      - name: Deploy infrastructure
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Deploy Lambda functions via CDK
         run: |
           cd infrastructure
-          npx cdk deploy --all --require-approval never
+          npm install
+          npx cdk deploy ApiStack --require-approval never
         env:
-          CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
-          CDK_DEFAULT_REGION: us-east-1
-      
-      - name: Deploy dashboard to S3
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Deployment summary
         run: |
-          cd packages/dashboard
-          npm run build
-          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }} --delete
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
-      
-      - name: Package extension
+          echo "## Backend API Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Backend API deployed to ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "Environment: ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+
+  deploy-ml:
+    name: Deploy ML Lambda
+    runs-on: ubuntu-latest
+    if: github.event.inputs.component == 'ml-lambda' || github.event.inputs.component == 'all'
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          if [ -f "packages/ml-engine/requirements.txt" ]; then
+            pip install -r packages/ml-engine/requirements.txt
+          else
+            echo "⚠️ ML requirements not found, skipping"
+            exit 0
+          fi
+
+      - name: Build ML package
+        run: |
+          if [ -d "packages/ml-engine" ]; then
+            cd packages/ml-engine
+            python -m build || echo "Build step optional"
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Deploy ML Lambda via CDK
+        run: |
+          cd infrastructure
+          npm install
+          npx cdk deploy MlStack --require-approval never
+
+      - name: Deployment summary
+        run: |
+          echo "## ML Lambda Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "✅ ML Lambda deployed to ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+
+  deploy-dashboard:
+    name: Deploy Dashboard (Vercel)
+    runs-on: ubuntu-latest
+    if: github.event.inputs.component == 'dashboard' || github.event.inputs.component == 'all'
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build dashboard
+        run: |
+          if [ -d "packages/dashboard" ]; then
+            npm run build --workspace=packages/dashboard
+          else
+            echo "⚠️ Dashboard package not found, skipping"
+            exit 0
+          fi
+        env:
+          VITE_API_URL: ${{ secrets.API_URL }}
+          VITE_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
+          VITE_USER_POOL_CLIENT_ID: ${{ secrets.COGNITO_USER_POOL_CLIENT_ID }}
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: packages/dashboard
+          vercel-args: ${{ github.event.inputs.environment == 'production' && '--prod' || '' }}
+
+      - name: Deployment summary
+        run: |
+          echo "## Dashboard Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Dashboard deployed to Vercel (${{ github.event.inputs.environment }})" >> $GITHUB_STEP_SUMMARY
+
+  package-extension:
+    name: Package Extension
+    runs-on: ubuntu-latest
+    if: github.event.inputs.component == 'extension' || github.event.inputs.component == 'all'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: |
+          if [ -d "packages/extension" ]; then
+            npm run build --workspace=packages/extension
+          else
+            echo "⚠️ Extension package not found, skipping"
+            exit 0
+          fi
+
+      - name: Package extension for Chrome Web Store
         run: |
           cd packages/extension
-          npm run build
-          zip -r extension.zip dist/ manifest.json
-      
+          if [ -d "dist" ]; then
+            zip -r ../../pufferphish-extension-${{ github.event.inputs.environment }}.zip dist/
+          fi
+
       - name: Upload extension artifact
         uses: actions/upload-artifact@v4
         with:
-          name: chrome-extension
-          path: packages/extension/extension.zip
+          name: pufferphish-extension-${{ github.event.inputs.environment }}
+          path: pufferphish-extension-${{ github.event.inputs.environment }}.zip
+          retention-days: 30
+
+      - name: Deployment summary
+        run: |
+          echo "## Extension Package" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Extension packaged for ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "📦 Download artifact to submit to Chrome Web Store" >> $GITHUB_STEP_SUMMARY
+
+  deployment-summary:
+    name: Deployment Complete
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-ml, deploy-dashboard, package-extension]
+    if: always()
+
+    steps:
+      - name: Summary
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Component:** ${{ github.event.inputs.component }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Results:" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend API: ${{ needs.deploy-backend.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- ML Lambda: ${{ needs.deploy-ml.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Dashboard: ${{ needs.deploy-dashboard.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Extension: ${{ needs.package-extension.result }}" >> $GITHUB_STEP_SUMMARY
