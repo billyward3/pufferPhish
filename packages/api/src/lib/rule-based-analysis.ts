@@ -70,8 +70,14 @@ export function analyzeURL(url: string, domain: string): RuleAnalysisResult {
 
   // Check for excessive subdomains (e.g., secure.login.paypal.fake.com)
   const subdomainCount = domain.split('.').length - 2;
-  if (subdomainCount > 3) {
-    urlScore += 0.2;
+  if (subdomainCount > 8) {
+    urlScore += 1.0;
+    flags.push('CRITICAL: Extreme subdomain depth (classic typosquatting attack)');
+  } else if (subdomainCount > 5) {
+    urlScore += 0.7;
+    flags.push('Highly suspicious subdomain structure (possible typosquatting)');
+  } else if (subdomainCount > 3) {
+    urlScore += 0.4;
     flags.push('Excessive subdomains detected');
   }
 
@@ -101,8 +107,17 @@ export function analyzeURL(url: string, domain: string): RuleAnalysisResult {
     domain.toLowerCase().includes(keyword)
   );
   if (keywordMatches.length > 0) {
-    domainScore += Math.min(keywordMatches.length * 0.15, 0.4);
-    flags.push(`Contains suspicious keywords: ${keywordMatches.join(', ')}`);
+    // More aggressive scoring for multiple keywords (common in phishing)
+    const keywordScore = Math.min(keywordMatches.length * 0.2, 0.6);
+    domainScore += keywordScore;
+
+    // Extra penalty if multiple high-risk keywords combined
+    if (keywordMatches.length >= 3) {
+      domainScore += 0.2;
+      flags.push(`Multiple suspicious keywords detected: ${keywordMatches.join(', ')} (HIGH RISK)`);
+    } else {
+      flags.push(`Contains suspicious keywords: ${keywordMatches.join(', ')}`);
+    }
   }
 
   // Check for numbers in unusual positions (e.g., paypa1.com)
@@ -117,8 +132,11 @@ export function analyzeURL(url: string, domain: string): RuleAnalysisResult {
   if (mainDomain.length < 3) {
     domainScore += 0.1;
     flags.push('Unusually short domain name');
+  } else if (mainDomain.length > 50) {
+    domainScore += 0.4;
+    flags.push('Extremely long domain name (strong phishing indicator)');
   } else if (mainDomain.length > 30) {
-    domainScore += 0.15;
+    domainScore += 0.2;
     flags.push('Unusually long domain name');
   }
 
