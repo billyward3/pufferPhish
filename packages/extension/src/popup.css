@@ -3,12 +3,14 @@ body {
     margin: 0;
     padding: 0;
     background: var(--color-white);
-    width: 380px; /* <-- ADD THIS LINE */
+    width: 380px;
+    min-width: 380px;
 }
 
 .extension-container {
     width: 100%;
-    max-height: 600px; /* Cap height to prevent excessive scrolling */
+    min-height: 500px;
+    max-height: 600px;
     display: flex;
     flex-direction: column;
     background: var(--color-white);
@@ -55,7 +57,7 @@ body {
 .extension-body {
     flex: 1;
     overflow-y: auto;
-    padding: var(--space-lg);
+    padding: var(--space-md) var(--space-lg);
 }
 
 .extension-footer {
@@ -70,22 +72,22 @@ body {
 }
 
 .status-icon {
-    font-size: 48px;
-    margin-bottom: var(--space-sm);
+    font-size: 40px;
+    margin-bottom: var(--space-xs);
 }
 
 .status-title {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
     font-weight: var(--font-weight-bold);
-    margin-bottom: var(--space-sm);
+    margin-bottom: var(--space-xs);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-sm);
+    gap: var(--space-xs);
 }
 
 .status-description {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-sm);
     color: var(--color-gray-600);
 }
 
