@@ -35,6 +35,15 @@ const PHISHING_KEYWORDS = [
   'suspended', 'limited', 'unusual', 'activity',
 ];
 
+// Popular brand names that shouldn't appear in URL paths
+const BRAND_NAMES = [
+  'paypal.com', 'amazon.com', 'amazon.co.uk', 'apple.com',
+  'microsoft.com', 'google.com', 'facebook.com', 'instagram.com',
+  'twitter.com', 'linkedin.com', 'netflix.com', 'ebay.com',
+  'alibaba.com', 'aliexpress.com', 'bankofamerica.com', 'chase.com',
+  'wellsfargo.com', 'citibank.com', 'americanexpress.com',
+];
+
 // Homoglyph characters (look-alike characters)
 const HOMOGLYPH_PATTERNS = /[òóôõöōŏőơǒǫọộốồổỗớờởỡợ]/gi;
 
@@ -185,13 +194,25 @@ export function analyzeURL(url: string, domain: string): RuleAnalysisResult {
     flags.push('Uses non-standard port');
   }
 
+  // Check for brand name spoofing in URL path (e.g., fake.com/paypal.com/login)
+  const urlPath = url.toLowerCase();
+  const brandMatches = BRAND_NAMES.filter(brand => {
+    // Only flag if brand appears in path but NOT in the actual domain
+    return urlPath.includes(brand) && !domain.toLowerCase().includes(brand.replace('.com', '').replace('.co.uk', ''));
+  });
+
+  if (brandMatches.length > 0) {
+    urlScore += 0.8; // Very high score for path-based brand spoofing
+    flags.push(`Brand name spoofing in URL path: ${brandMatches.join(', ')} (CRITICAL)`);
+  }
+
   // === CALCULATE FINAL SCORES ===
 
-  // Weighted combination (URL patterns most important, then domain, then content)
-  const totalRisk = Math.min(
-    (urlScore * 0.4) + (domainScore * 0.4) + (contentScore * 0.2),
-    1.0
-  );
+  // Use maximum of individual scores or weighted average, whichever is higher
+  // This ensures extreme indicators (like 10+ subdomains) directly set high risk
+  const weightedRisk = (urlScore * 0.4) + (domainScore * 0.4) + (contentScore * 0.2);
+  const maxIndividualRisk = Math.max(urlScore, domainScore, contentScore);
+  const totalRisk = Math.min(Math.max(weightedRisk, maxIndividualRisk * 0.9), 1.0);
 
   // Distribute risk across threat categories
   const phishingThreat = Math.min(domainScore + contentScore * 0.5, 1.0);
