@@ -6,10 +6,12 @@
   "permissions": [
     "storage",
     "tabs",
-    "activeTab"
+    "activeTab",
+    "webNavigation"
   ],
   "host_permissions": [
-    "https://api.pufferphish.com/*"
+    "https://api.pufferphish.com/*",
+    "http://localhost:3001/*"
   ],
   "background": {
     "service_worker": "background.js"
