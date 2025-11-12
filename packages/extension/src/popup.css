@@ -66,8 +66,8 @@ body {
 
 .status-header {
     text-align: center;
-    padding: var(--space-xl) var(--space-lg);
-    margin-bottom: var(--space-lg);
+    padding: var(--space-md) var(--space-lg) var(--space-sm);
+    margin-bottom: var(--space-md);
 }
 
 .status-icon {

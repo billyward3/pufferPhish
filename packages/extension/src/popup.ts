@@ -28,8 +28,8 @@ async function loadCurrentAnalysis(): Promise<void> {
   try {
     const response = await chrome.runtime.sendMessage({ type: 'GET_CURRENT_ANALYSIS' });
 
-    if (response && response.analysis) {
-      currentAnalysis = response.analysis;
+    if (response && response.success && response.data) {
+      currentAnalysis = response.data;
       if (currentAnalysis) {
         updateAnalysisView(currentAnalysis);
       }
@@ -52,8 +52,8 @@ async function loadStats(): Promise<void> {
   try {
     const response = await chrome.runtime.sendMessage({ type: 'GET_STATS' });
 
-    if (response && response.stats) {
-      currentStats = response.stats;
+    if (response && response.success && response.data) {
+      currentStats = response.data;
       if (currentStats) {
         updateStatsDisplay(currentStats);
       }
@@ -247,7 +247,7 @@ function setupEventListeners(): void {
   const dashboardButton = document.getElementById('dashboard-button');
   if (dashboardButton) {
     dashboardButton.addEventListener('click', () => {
-      chrome.tabs.create({ url: 'http://localhost:5173' });
+      chrome.tabs.create({ url: 'https://billyward3.github.io/pufferPhish/dashboard.html' });
     });
   }
 
