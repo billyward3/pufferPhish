@@ -1,0 +1,213 @@
+/* Extension Popup Specific Styles */
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--color-white);
+    width: 380px; /* <-- ADD THIS LINE */
+}
+
+.extension-container {
+    width: 100%; /* <-- CHANGE THIS from 380px */
+    /* height: 600px; */ /* Let's let content define height */
+    min-height: 600px; /* Set a min-height */
+    display: flex;
+    flex-direction: column;
+    background: var(--color-white);
+    box-shadow: var(--shadow-xl);
+}
+
+.extension-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 2px solid var(--color-gray-200);
+    background: var(--color-white);
+}
+
+.extension-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-gray-900);
+}
+
+.extension-actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.icon-button {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    color: var(--color-gray-600);
+}
+
+.icon-button:hover {
+    background: var(--color-gray-100);
+}
+
+.extension-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-lg);
+}
+
+.extension-footer {
+    padding: var(--space-lg);
+    border-top: 2px solid var(--color-gray-200);
+}
+
+.status-header {
+    text-align: center;
+    padding: var(--space-xl) var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.status-icon {
+    font-size: 64px;
+    margin-bottom: var(--space-md);
+}
+
+.status-title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+}
+
+.status-description {
+    font-size: var(--font-size-base);
+    color: var(--color-gray-600);
+}
+
+.action-section {
+    margin-top: var(--space-lg);
+}
+
+.action-section h4 {
+    margin-bottom: var(--space-md);
+    font-size: var(--font-size-base);
+    color: var(--color-gray-700);
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+/* State Switcher (for demo) */
+.demo-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--color-gray-900);
+    color: var(--color-white);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xl);
+    z-index: 1000;
+}
+
+.demo-controls h4 {
+    color: var(--color-white);
+    margin-bottom: var(--space-sm);
+    font-size: var(--font-size-sm);
+}
+
+.demo-buttons {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.demo-buttons button {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+    min-height: auto;
+}
+
+/* View Wrapper */
+.view {
+    display: none;
+}
+
+.view.active {
+    display: block;
+}
+
+.comparison-box {
+    background: var(--color-gray-50);
+    border: 2px solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-top: var(--space-lg);
+}
+
+.comparison-box h5 {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-sm);
+    color: var(--color-gray-700);
+}
+
+.comparison-sites {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+}
+
+.comparison-site {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.site-badge {
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+}
+
+.site-badge.real {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.site-badge.fake {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+/* This assumes you have a utility class for screen-reader only content.
+  If not, Webpack will inject the JS, and this isn't strictly needed
+  for the demo controls, but good for accessibility.
+*/
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+@media (max-width: 480px) {
+    .extension-container {
+        width: 100vw;
+        height: 100vh;
+    }
+}

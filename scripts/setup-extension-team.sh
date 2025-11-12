@@ -33,13 +33,31 @@ cd packages/extension
 echo "Installing extension dependencies..."
 npm install
 
+# --- NEW STEP ---
+echo "Installing Webpack plugin to copy manifest.json..."
+# This plugin will allow Webpack to copy the manifest to the dist/ folder
+npm install --save-dev copy-webpack-plugin
+npm install --save-dev html-webpack-plugin
+npm install --save-dev typescript ts-loader
+npm install --save-dev style-loader css-loader
+# --- END NEW STEP ---
+
+
 # Build extension
 echo "Building extension..."
+
 npm run build
 
 # Check if build succeeded
 if [ -d "dist" ]; then
-    echo "✅ Extension built successfully"
+    # Check for manifest (it might not be there yet)
+    if [ ! -f "dist/manifest.json" ]; then
+        echo "⚠️  Build succeeded, but manifest.json is still missing in dist/."
+        echo "   You must complete the next step (editing webpack.config.js) and re-run this script."
+    else
+        echo "✅ Extension built successfully"
+    fi
+    
     echo ""
     echo "📦 Extension ready to load in Chrome:"
     echo "   1. Open Chrome and go to chrome://extensions"
