@@ -1,47 +1,70 @@
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  mode: 'production',
+  mode: 'production', // or 'development'
+  
+  // Entry points for your extension
   entry: {
-    background: './src/background.ts',
+    popup: './src/popup.ts',
+    background: './src/background.ts', // Add other files as needed
     content: './src/content.ts',
-    popup: './src/popup.ts'
   },
+  
+  // Where the bundled files will go
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: '[name].js'
+    filename: '[name].js', // Creates popup.js, background.js etc.
+    clean: true, // Cleans the dist/ folder before each build
   },
+
+  // --- THIS IS THE FIX ---
+  // Rules for how to handle different file types
   module: {
     rules: [
       {
+        // How to handle TypeScript files
         test: /\.tsx?$/,
         use: 'ts-loader',
-        exclude: /node_modules/
-      }
-    ]
+        exclude: /node_modules/,
+      },
+      {
+        // How to handle CSS files
+        test: /\.css$/,
+        use: [
+          'style-loader', // 2. Injects styles into the DOM
+          'css-loader'    // 1. Reads the CSS file
+        ],
+      },
+    ],
   },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js']
-  },
-  plugins: [
-    // ...any other plugins you might have
+  // --- END OF FIX ---
 
+  // Which file extensions to resolve
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
+  },
+
+  // Plugins to copy static files and generate HTML
+  plugins: [
+    // Copies your manifest.json and images
     new CopyWebpackPlugin({
       patterns: [
-        {
-          // Assumes your manifest is at 'packages/extension/src/manifest.json'
-          // Change 'src/manifest.json' if it's located somewhere else
-          from: 'manifest.json', 
-          to: 'manifest.json' // This will copy it to the root of dist/
-        },
-        {// --- ADD THIS BLOCK ---
-          // This copies your images folder
-          from: 'src/images',
-          to: 'images'
-          // --- END OF NEW BLOCK ---
-        }
-      ]
-    })
-  ]
+        { from: 'manifest.json', to: 'manifest.json' },
+        { from: 'src/images', to: 'images' },
+        // Add any other static assets here
+      ],
+    }),
+
+    // Generates popup.html and injects popup.js
+    new HtmlWebpackPlugin({
+      template: './src/popup.html',
+      filename: 'popup.html',
+      chunks: ['popup'], // Only include the 'popup' script
+    }),
+    
+    // Add other HtmlWebpackPlugin instances if you have other HTML pages
+    // (e.g., an options page)
+  ],
 };
