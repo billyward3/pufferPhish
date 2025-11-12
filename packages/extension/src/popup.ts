@@ -243,11 +243,11 @@ function setupEventListeners(): void {
     });
   }
 
-  // Dashboard button (if exists in HTML)
+  // Dashboard button - opens lofi prototype
   const dashboardButton = document.getElementById('dashboard-button');
   if (dashboardButton) {
     dashboardButton.addEventListener('click', () => {
-      chrome.tabs.create({ url: 'dashboard.html' });
+      chrome.tabs.create({ url: 'http://localhost:5173' });
     });
   }
 
