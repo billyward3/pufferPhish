@@ -12,7 +12,23 @@ import { handler as analyzeHandler } from './handlers/analyze';
 import { handler as statsHandler } from './handlers/stats';
 import { handler as settingsHandler } from './handlers/settings';
 import { handler as feedbackHandler } from './handlers/feedback';
-import type { APIGatewayProxyEventV2 } from 'aws-lambda';
+import type { APIGatewayProxyEventV2, Context } from 'aws-lambda';
+
+// Mock Lambda context for local testing
+const mockContext: Context = {
+  callbackWaitsForEmptyEventLoop: false,
+  functionName: 'local',
+  functionVersion: '$LATEST',
+  invokedFunctionArn: 'arn:aws:lambda:us-east-1:123456789012:function:local',
+  memoryLimitInMB: '128',
+  awsRequestId: 'local-request-id',
+  logGroupName: '/aws/lambda/local',
+  logStreamName: 'local-stream',
+  getRemainingTimeInMillis: () => 300000,
+  done: () => {},
+  fail: () => {},
+  succeed: () => {},
+};
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -78,7 +94,7 @@ function fromLambdaResponse(lambdaResponse: any, res: express.Response) {
 app.post('/analyze', async (req, res) => {
   try {
     const event = toLambdaEvent(req, 'POST');
-    const response = await (analyzeHandler as any)(event);
+    const response = await (analyzeHandler as any)(event, mockContext);
     fromLambdaResponse(response, res);
   } catch (error) {
     console.error('Error in /analyze:', error);
@@ -89,7 +105,7 @@ app.post('/analyze', async (req, res) => {
 app.get('/stats', async (req, res) => {
   try {
     const event = toLambdaEvent(req, 'GET');
-    const response = await (statsHandler as any)(event);
+    const response = await (statsHandler as any)(event, mockContext);
     fromLambdaResponse(response, res);
   } catch (error) {
     console.error('Error in /stats:', error);
@@ -100,7 +116,7 @@ app.get('/stats', async (req, res) => {
 app.get('/settings', async (req, res) => {
   try {
     const event = toLambdaEvent(req, 'GET');
-    const response = await (settingsHandler as any)(event);
+    const response = await (settingsHandler as any)(event, mockContext);
     fromLambdaResponse(response, res);
   } catch (error) {
     console.error('Error in /settings:', error);
@@ -111,7 +127,7 @@ app.get('/settings', async (req, res) => {
 app.put('/settings', async (req, res) => {
   try {
     const event = toLambdaEvent(req, 'PUT');
-    const response = await (settingsHandler as any)(event);
+    const response = await (settingsHandler as any)(event, mockContext);
     fromLambdaResponse(response, res);
   } catch (error) {
     console.error('Error in /settings:', error);
@@ -122,7 +138,7 @@ app.put('/settings', async (req, res) => {
 app.post('/feedback', async (req, res) => {
   try {
     const event = toLambdaEvent(req, 'POST');
-    const response = await (feedbackHandler as any)(event);
+    const response = await (feedbackHandler as any)(event, mockContext);
     fromLambdaResponse(response, res);
   } catch (error) {
     console.error('Error in /feedback:', error);

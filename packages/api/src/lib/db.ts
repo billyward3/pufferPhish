@@ -1,0 +1,24 @@
+/**
+ * Prisma Database Client
+ * Singleton instance for database connections
+ */
+
+import { PrismaClient } from '@prisma/client';
+
+// Prevent multiple instances in development (hot reload)
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
+
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  });
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
+
+// Helper to safely disconnect (useful for Lambda cleanup)
+export async function disconnectDB() {
+  await prisma.$disconnect();
+}

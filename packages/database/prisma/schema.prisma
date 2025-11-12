@@ -37,7 +37,7 @@ model UserSettings {
 
 model Analysis {
   id            String   @id @default(uuid())
-  userId        String
+  userId        String?
   url           String   @db.Text
   domain        String
   riskScore     Float
@@ -46,10 +46,10 @@ model Analysis {
   source        String
   metadata      Json?
   timestamp     DateTime @default(now())
-  
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   feedback      Feedback?
-  
+
   @@index([userId, timestamp(sort: Desc)])
   @@index([domain])
   @@index([timestamp])
