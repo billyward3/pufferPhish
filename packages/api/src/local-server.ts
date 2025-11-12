@@ -5,6 +5,7 @@
  * Run: npm run dev
  */
 
+import 'dotenv/config'; // Load .env file
 import express from 'express';
 import cors from 'cors';
 import { handler as analyzeHandler } from './handlers/analyze';
