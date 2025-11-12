@@ -251,6 +251,27 @@ function setupEventListeners(): void {
     });
   }
 
+  // "Take Me to Safety" buttons
+  const safetyButtons = document.querySelectorAll('#danger-go-safe-button, #warn-go-safe-button');
+  safetyButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]?.id) {
+          chrome.tabs.update(tabs[0].id, { url: 'https://www.google.com' });
+        }
+      });
+    });
+  });
+
+  // "I Understand the Risk" / "I Trust This Site" buttons
+  const trustButtons = document.querySelectorAll('#danger-trust-button, #warn-trust-button');
+  trustButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Close the popup, user proceeds at their own risk
+      window.close();
+    });
+  });
+
   // Demo controls (for testing)
   setupDemoControls();
 
