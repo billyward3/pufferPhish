@@ -1,9 +1,11 @@
 /**
  * ML Lambda Client
  * Invokes the Python ML Lambda for phishing detection
+ * Falls back to rule-based analysis in development
  */
 
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { analyzeURL, getAnalysisMessage } from './rule-based-analysis';
 
 const lambdaClient = new LambdaClient({
   region: process.env.AWS_REGION || 'us-east-1',
@@ -31,13 +33,35 @@ export interface MLResponse {
 
 /**
  * Invoke ML Lambda for phishing analysis
+ * Falls back to rule-based analysis in development or if ML is unavailable
  */
 export async function invokeMLAnalysis(request: MLRequest): Promise<MLResponse> {
-  const functionName = process.env.ML_LAMBDA_NAME || 'pufferphish-ml-analyze';
+  const startTime = Date.now();
+  const isProduction = process.env.NODE_ENV === 'production';
+  const mlLambdaName = process.env.ML_LAMBDA_NAME;
 
+  // Use rule-based analysis in development or if ML Lambda not configured
+  if (!isProduction || !mlLambdaName) {
+    console.log('Using rule-based analysis (development mode)');
+
+    const ruleResult = analyzeURL(request.url, request.domain);
+    const processingTime = Date.now() - startTime;
+
+    return {
+      riskScore: ruleResult.riskScore,
+      threats: ruleResult.threats,
+      confidence: ruleResult.confidence,
+      source: 'rule_based',
+      modelVersion: 'rule-based-v1.0',
+      processingTime,
+      message: getAnalysisMessage(ruleResult),
+    };
+  }
+
+  // Production: Try ML Lambda
   try {
     const command = new InvokeCommand({
-      FunctionName: functionName,
+      FunctionName: mlLambdaName,
       Payload: JSON.stringify(request),
     });
 
@@ -60,21 +84,20 @@ export async function invokeMLAnalysis(request: MLRequest): Promise<MLResponse> 
       throw new Error(`ML Lambda failed with status ${lambdaResult.statusCode}`);
     }
   } catch (error) {
-    console.error('Error invoking ML Lambda:', error);
+    console.error('Error invoking ML Lambda, falling back to rule-based:', error);
 
-    // Return fallback response if ML Lambda fails
+    // Fallback to rule-based analysis if ML fails
+    const ruleResult = analyzeURL(request.url, request.domain);
+    const processingTime = Date.now() - startTime;
+
     return {
-      riskScore: 0.5,
-      threats: {
-        phishing: 0.5,
-        malware: 0.0,
-        social: 0.0,
-      },
-      confidence: 0.0,
-      source: 'fallback',
-      modelVersion: 'fallback-v1',
-      processingTime: 0,
-      message: 'ML service unavailable - using fallback assessment',
+      riskScore: ruleResult.riskScore,
+      threats: ruleResult.threats,
+      confidence: ruleResult.confidence,
+      source: 'rule_based',
+      modelVersion: 'rule-based-v1.0-fallback',
+      processingTime,
+      message: `ML unavailable - ${getAnalysisMessage(ruleResult)}`,
     };
   }
 }
