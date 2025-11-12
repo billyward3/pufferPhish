@@ -1,0 +1,6 @@
+# Python dependencies for ML Lambda function
+# These are placeholder dependencies for MVP deployment
+# ML team will add actual model dependencies
+
+boto3>=1.28.0
+requests>=2.31.0

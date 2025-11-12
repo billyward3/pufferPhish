@@ -101,16 +101,8 @@ export class PufferPhishStack extends cdk.Stack {
       ...lambdaProps,
       functionName: 'pufferphish-analyze',
       description: 'Analyze URLs for phishing threats',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api'), {
-        bundling: {
-          image: lambda.Runtime.NODEJS_20_X.bundlingImage,
-          command: [
-            'bash', '-c',
-            'npm install && npm run build && cp -r dist/* /asset-output/ && cp -r node_modules /asset-output/',
-          ],
-        },
-      }),
-      handler: 'handlers/analyze.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api')),
+      handler: 'dist/handlers/analyze.handler',
     });
 
     // Stats Lambda - User statistics
@@ -118,16 +110,8 @@ export class PufferPhishStack extends cdk.Stack {
       ...lambdaProps,
       functionName: 'pufferphish-stats',
       description: 'Retrieve user statistics',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api'), {
-        bundling: {
-          image: lambda.Runtime.NODEJS_20_X.bundlingImage,
-          command: [
-            'bash', '-c',
-            'npm install && npm run build && cp -r dist/* /asset-output/ && cp -r node_modules /asset-output/',
-          ],
-        },
-      }),
-      handler: 'handlers/stats.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api')),
+      handler: 'dist/handlers/stats.handler',
     });
 
     // Settings Lambda - User settings CRUD
@@ -135,16 +119,8 @@ export class PufferPhishStack extends cdk.Stack {
       ...lambdaProps,
       functionName: 'pufferphish-settings',
       description: 'Manage user settings',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api'), {
-        bundling: {
-          image: lambda.Runtime.NODEJS_20_X.bundlingImage,
-          command: [
-            'bash', '-c',
-            'npm install && npm run build && cp -r dist/* /asset-output/ && cp -r node_modules /asset-output/',
-          ],
-        },
-      }),
-      handler: 'handlers/settings.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api')),
+      handler: 'dist/handlers/settings.handler',
     });
 
     // Feedback Lambda - User feedback submission
@@ -152,16 +128,8 @@ export class PufferPhishStack extends cdk.Stack {
       ...lambdaProps,
       functionName: 'pufferphish-feedback',
       description: 'Submit user feedback',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api'), {
-        bundling: {
-          image: lambda.Runtime.NODEJS_20_X.bundlingImage,
-          command: [
-            'bash', '-c',
-            'npm install && npm run build && cp -r dist/* /asset-output/ && cp -r node_modules /asset-output/',
-          ],
-        },
-      }),
-      handler: 'handlers/feedback.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/api')),
+      handler: 'dist/handlers/feedback.handler',
     });
 
     // ML Lambda - Phishing detection model (Python)
@@ -169,16 +137,8 @@ export class PufferPhishStack extends cdk.Stack {
       functionName: 'pufferphish-ml-analyze',
       description: 'ML model inference for phishing detection',
       runtime: lambda.Runtime.PYTHON_3_11,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/ml-engine'), {
-        bundling: {
-          image: lambda.Runtime.PYTHON_3_11.bundlingImage,
-          command: [
-            'bash', '-c',
-            'pip install -r requirements.txt -t /asset-output && cp -r src/* /asset-output/',
-          ],
-        },
-      }),
+      handler: 'src.index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../packages/ml-engine')),
       timeout: cdk.Duration.seconds(60), // ML inference may take longer
       memorySize: 1024, // More memory for ML workload
       environment: {
