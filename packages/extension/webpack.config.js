@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 require('dotenv').config();
 
 module.exports = {
@@ -35,8 +36,8 @@ module.exports = {
         // How to handle CSS files
         test: /\.css$/,
         use: [
-          'style-loader', // 2. Injects styles into the DOM
-          'css-loader'    // 1. Reads the CSS file
+          MiniCssExtractPlugin.loader, // Extracts CSS to separate files (CSP-safe)
+          'css-loader'                  // Reads the CSS file
         ],
       },
     ],
@@ -55,6 +56,11 @@ module.exports = {
       'process.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'http://localhost:3001'),
       'process.env.VITE_DEMO_MODE': JSON.stringify(process.env.VITE_DEMO_MODE === 'true'),
       'process.env.VITE_ENVIRONMENT': JSON.stringify(process.env.VITE_ENVIRONMENT || 'development'),
+    }),
+
+    // Extract CSS into separate files (CSP-safe)
+    new MiniCssExtractPlugin({
+      filename: '[name].css',
     }),
 
     // Copies your manifest.json and images
