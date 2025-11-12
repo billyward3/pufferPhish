@@ -66,29 +66,36 @@ body {
 }
 
 .status-header {
-    text-align: center;
-    padding: var(--space-sm) var(--space-lg) var(--space-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-lg);
     margin-bottom: var(--space-sm);
+    border-bottom: 2px solid var(--color-gray-200);
 }
 
 .status-icon {
-    font-size: 40px;
-    margin-bottom: var(--space-xs);
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.status-content {
+    flex: 1;
 }
 
 .status-title {
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-lg);
     font-weight: var(--font-weight-bold);
-    margin-bottom: var(--space-xs);
+    margin-bottom: 2px;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: var(--space-xs);
 }
 
 .status-description {
     font-size: var(--font-size-sm);
     color: var(--color-gray-600);
+    margin: 0;
 }
 
 .action-section {

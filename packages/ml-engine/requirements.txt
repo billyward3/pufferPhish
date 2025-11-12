@@ -1,6 +1,13 @@
-# Python dependencies for ML Lambda function
-# These are placeholder dependencies for MVP deployment
-# ML team will add actual model dependencies
+# Python dependencies for ML Engine
+# Local Flask API and ML model dependencies
 
+flask==3.0.0
+flask-cors==4.0.0
+transformers==4.36.0
+optimum[onnxruntime]==1.16.0
+onnxruntime>=1.17.0
+huggingface-hub==0.19.4
+
+# AWS Lambda dependencies (for future deployment)
 boto3>=1.28.0
 requests>=2.31.0

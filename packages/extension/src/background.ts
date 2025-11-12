@@ -42,23 +42,82 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 /**
- * Analyze URL when tab is updated
+ * Track URLs being analyzed to prevent re-analysis loops
+ */
+const analyzingUrls = new Set<string>();
+
+/**
+ * Analyze URL when tab is updated - intercept on 'loading' status
  */
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  // Only analyze when the page has finished loading
-  if (changeInfo.status === 'complete' && tab.url) {
-    // Skip chrome:// and extension pages
+  // Intercept when page starts loading (before content loads)
+  if (changeInfo.status === 'loading' && tab.url) {
+    const url = tab.url;
+
+    // Skip chrome://, extension pages, and our warning page
     if (
-      tab.url.startsWith('chrome://') ||
-      tab.url.startsWith('chrome-extension://')
+      url.startsWith('chrome://') ||
+      url.startsWith('chrome-extension://') ||
+      url.includes('/warning.html') ||
+      url === 'https://www.google.com/' ||
+      url === 'https://www.google.com' ||
+      analyzingUrls.has(url)
     ) {
       return;
     }
 
     try {
-      await analyzeAndStoreURL(tab.url, tabId);
+      // Mark URL as being analyzed
+      analyzingUrls.add(url);
+
+      // Analyze URL
+      const analysis = await analyzeAndStoreURL(url, tabId);
+
+      console.log('Analysis complete:', { url, riskScore: analysis.riskScore });
+
+      // If high risk (70%+), redirect to warning page
+      if (analysis.riskScore >= 0.7) {
+        const result = await chrome.storage.sync.get('settings');
+        const settings: SettingsResponse = result.settings || {
+          autoBlock: true,
+          notifications: true,
+          whitelistedDomains: [],
+        };
+
+        if (settings.autoBlock) {
+          console.log('High risk detected, redirecting to warning page');
+
+          // Build warning page URL with data
+          const warningURL = chrome.runtime.getURL('warning.html') +
+            `?url=${encodeURIComponent(url)}` +
+            `&data=${encodeURIComponent(JSON.stringify(analysis))}`;
+
+          // Redirect to warning page
+          await chrome.tabs.update(tabId, { url: warningURL });
+        }
+      }
     } catch (error) {
-      console.error('Error analyzing URL:', error);
+      console.error('Error analyzing URL on navigation:', error);
+    } finally {
+      // Remove from analyzing set after a delay
+      setTimeout(() => analyzingUrls.delete(url), 5000);
+    }
+  }
+
+  // Update icon when page finishes loading
+  if (changeInfo.status === 'complete' && tab.url) {
+    if (
+      !tab.url.startsWith('chrome://') &&
+      !tab.url.startsWith('chrome-extension://')
+    ) {
+      try {
+        const result = await chrome.storage.local.get('currentAnalysis');
+        if (result.currentAnalysis) {
+          await updateExtensionIcon(result.currentAnalysis.riskScore, tabId);
+        }
+      } catch (error) {
+        console.error('Error updating icon:', error);
+      }
     }
   }
 });

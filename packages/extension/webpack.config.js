@@ -11,8 +11,9 @@ module.exports = {
   // Entry points for your extension
   entry: {
     popup: './src/popup.ts',
-    background: './src/background.ts', // Add other files as needed
+    background: './src/background.ts',
     content: './src/content.ts',
+    warning: './src/warning.ts',
   },
   
   // Where the bundled files will go
@@ -77,6 +78,13 @@ module.exports = {
       template: './src/popup.html',
       filename: 'popup.html',
       chunks: ['popup'], // Only include the 'popup' script
+    }),
+
+    // Generates warning.html and injects warning.js
+    new HtmlWebpackPlugin({
+      template: './src/warning.html',
+      filename: 'warning.html',
+      chunks: ['warning'], // Only include the 'warning' script
     }),
 
     // Add other HtmlWebpackPlugin instances if you have other HTML pages

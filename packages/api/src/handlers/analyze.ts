@@ -202,6 +202,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       processingTime: mlResponse.processingTime,
       timestamp: new Date().toISOString(),
       message: mlResponse.message,
+      flags: mlResponse.flags,
     };
 
     // Store analysis result in database

@@ -22,6 +22,7 @@ export interface AnalysisResponse {
   processingTime?: number;
   timestamp: string;
   message?: string;
+  flags?: string[];
 }
 
 export interface StatsResponse {
